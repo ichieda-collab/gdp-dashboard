@@ -40,12 +40,21 @@ def get_calendar_service():
     return build("calendar", "v3", credentials=creds)
 
 
-def run_auth():
-    flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS_FILE), SCOPES)
-    creds = flow.run_console()
-    TOKEN_FILE.write_text(creds.to_json())
-    print("認証成功！token.json を保存しました。")
-    print("次回から Claude Code セッション開始時に自動でブリーフィングが表示されます。")
+def run_auth(code=None):
+    flow = InstalledAppFlow.from_client_secrets_file(
+        str(CREDENTIALS_FILE), SCOPES, redirect_uri="urn:ietf:wg:oauth:2.0:oob"
+    )
+    if code:
+        flow.fetch_token(code=code)
+        TOKEN_FILE.write_text(flow.credentials.to_json())
+        print("認証成功！token.json を保存しました。")
+        print("次回から Claude Code セッション開始時に自動でブリーフィングが表示されます。")
+    else:
+        auth_url, _ = flow.authorization_url(prompt="consent")
+        print("\n以下のURLをブラウザで開いてGoogleアカウントでログインしてください:\n")
+        print(auth_url)
+        print("\nログイン後に表示されるコードをコピーして、以下のコマンドを実行してください:")
+        print("  python /home/user/gdp-dashboard/briefing.py --auth <コード>")
 
 
 def fetch_events(service, days_back=7, days_ahead=3):
@@ -151,6 +160,8 @@ def main():
 if __name__ == "__main__":
     import sys
     if "--auth" in sys.argv:
-        run_auth()
+        idx = sys.argv.index("--auth")
+        code = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else None
+        run_auth(code)
     else:
         main()
