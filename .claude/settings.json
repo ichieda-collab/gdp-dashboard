@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python /home/user/gdp-dashboard/briefing.py",
+            "timeout": 60,
+            "statusMessage": "今日のブリーフィングを取得中..."
+          }
+        ]
+      }
+    ]
+  }
+}
